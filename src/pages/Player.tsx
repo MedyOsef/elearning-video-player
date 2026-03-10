@@ -71,6 +71,17 @@ export function Player() {
       console.error('Erreur lors du chargement de la progression:', error);
     }
   };
+
+  // Rafraîchir la progression depuis IndexedDB
+  const refreshProgress = useCallback(async () => {
+    if (!currentFormation) return;
+    try {
+      const prog = await getFormationProgress(currentFormation.id);
+      if (prog) setProgress(prog);
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement:', error);
+    }
+  }, [currentFormation]);
   
   // Trouver et définir une vidéo par son ID
   const findAndSetVideo = (videoId: string) => {
@@ -132,13 +143,14 @@ export function Player() {
         try {
           await markVideoCompleted(currentFormation.id, currentVideo.id);
           markVideoInStore(currentFormation.id, currentVideo.id);
+          await refreshProgress();
           toast.success('Vidéo marquée comme terminée !');
         } catch (error) {
           console.error('Erreur lors du marquage:', error);
         }
       }
     }
-  }, [currentFormation, currentVideo, progress, markVideoInStore, updateTimeInStore]);
+  }, [currentFormation, currentVideo, progress, markVideoInStore, updateTimeInStore, refreshProgress]);
   
   // Vidéo terminée
   const handleVideoEnded = useCallback(async () => {
@@ -148,6 +160,7 @@ export function Player() {
       await markVideoCompleted(currentFormation.id, currentVideo.id);
       markVideoInStore(currentFormation.id, currentVideo.id);
       await addVideoHistory(currentFormation.id, currentVideo.id, 0);
+      await refreshProgress();
       
       toast.success('Vidéo terminée !');
       
@@ -162,7 +175,7 @@ export function Player() {
     } catch (error) {
       console.error('Erreur lors de la fin de vidéo:', error);
     }
-  }, [currentFormation, currentVideo, markVideoInStore]);
+  }, [currentFormation, currentVideo, markVideoInStore, refreshProgress]);
   
   // Obtenir la vidéo suivante
   const getNextVideo = (): Video | null => {
@@ -215,8 +228,11 @@ export function Player() {
     setIsSidebarOpen(false);
     
     const prog = await getFormationProgress(currentFormation.id);
-    if (prog && prog.currentVideoId === video.id) {
-      setStartTime(prog.currentTime);
+    if (prog) {
+      setProgress(prog);
+      if (prog.currentVideoId === video.id) {
+        setStartTime(prog.currentTime);
+      }
     }
   };
   
@@ -248,6 +264,7 @@ export function Player() {
     try {
       await markVideoCompleted(currentFormation.id, currentVideo.id);
       markVideoInStore(currentFormation.id, currentVideo.id);
+      await refreshProgress();
       toast.success('Vidéo marquée comme terminée !');
     } catch (error) {
       toast.error('Erreur lors du marquage');
