@@ -1,6 +1,6 @@
 # 🎓 E-Learning Video Player
 
-Application web de lecture vidéo pour formations en ligne, avec interface sombre type Netflix/YouTube, gestion de progression via IndexedDB, et support des sous-titres SRT.
+Application web de lecture vidéo pour formations en local, gestion de progression via IndexedDB, et support des sous-titres SRT.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
