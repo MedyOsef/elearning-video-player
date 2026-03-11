@@ -2,7 +2,8 @@
  * Composant DropZone pour le drag & drop de dossiers
  * Style YouTube
  */
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { FolderOpen, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { isFileSystemAccessSupported, showDirectoryPicker, parseFormationFolder } from '@/utils/folderParser';
@@ -17,104 +18,35 @@ interface DropZoneProps {
 }
 
 export function DropZone({ onFormationsDetected, isLoading, setIsLoading }: DropZoneProps) {
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Gérer le drag enter
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }, []);
-  
-  // Gérer le drag leave
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }, []);
-  
-  // Gérer le drag over
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-  
-  // Gérer le drop
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    
-    const items = e.dataTransfer.items;
-    if (!items || items.length === 0) return;
-    
-    setIsLoading(true, 'Analyse du dossier...');
+  // Traiter les fichiers dropés
+  const processFiles = useCallback(async (files: File[]) => {
+    setIsLoading(true, 'Analyse des fichiers...');
     
     try {
-      const formations: Formation[] = [];
-      
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        
-        if (item.kind === 'file') {
-          // @ts-ignore - webkitGetAsEntry est une API non standard mais supportée
-          const entry = item.webkitGetAsEntry();
-          
-          if (entry && entry.isDirectory) {
-            const files: File[] = [];
-            const traverseDirectory = async (dirEntry: any, path: string = '') => {
-              const reader = dirEntry.createReader();
-              const entries: any[] = await new Promise((resolve) => {
-                reader.readEntries(resolve);
-              });
-              
-              for (const entry of entries) {
-                if (entry.isFile) {
-                  const file = await new Promise<File>((resolve) => {
-                    entry.file(resolve);
-                  });
-                  // @ts-ignore
-                  file.webkitRelativePath = path + entry.name;
-                  files.push(file);
-                } else if (entry.isDirectory) {
-                  await traverseDirectory(entry, path + entry.name + '/');
-                }
-              }
-            };
-            
-            await traverseDirectory(entry);
-            
-            const fileList = {
-              length: files.length,
-              item: (i: number) => files[i],
-              [Symbol.iterator]: function* () {
-                for (let i = 0; i < files.length; i++) {
-                  yield files[i];
-                }
-              }
-            };
-            
-            // @ts-ignore
-            const parsedFormations = parseFilesFromInput(fileList);
-            formations.push(...parsedFormations);
-          }
-        }
-      }
+      const formations = parseFilesFromInput(files);
       
       if (formations.length > 0) {
         onFormationsDetected(formations);
         toast.success(`${formations.length} formation(s) détectée(s)`);
       } else {
-        toast.error('Aucune formation trouvée dans le dossier');
+        toast.error('Aucune formation trouvée dans les fichiers');
       }
     } catch (error) {
-      console.error('Erreur lors du parsing:', error);
-      toast.error('Erreur lors de l\'analyse du dossier');
+      console.error('Erreur lors de l\'analyse des fichiers:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de l'analyse du dossier: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
   }, [onFormationsDetected, setIsLoading]);
+  
+  // Configuration de react-dropzone
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: processFiles,
+    noClick: true,
+  });
   
   // Sélectionner un dossier via l'API File System Access
   const handleSelectFolder = async () => {
@@ -130,8 +62,9 @@ export function DropZone({ onFormationsDetected, isLoading, setIsLoading }: Drop
           toast.success('Formation chargée avec succès');
         }
       } catch (error) {
-        console.error('Erreur:', error);
-        toast.error('Erreur lors de l\'ouverture du dossier');
+        console.error('Erreur lors de l\'ouverture du dossier:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+        toast.error(`Erreur lors de l'ouverture du dossier: ${errorMessage}`);
       } finally {
         setIsLoading(false);
       }
@@ -145,25 +78,9 @@ export function DropZone({ onFormationsDetected, isLoading, setIsLoading }: Drop
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
-    setIsLoading(true, 'Analyse des fichiers...');
-    
-    try {
-      const formations = parseFilesFromInput(files);
-      
-      if (formations.length > 0) {
-        onFormationsDetected(formations);
-        toast.success(`${formations.length} formation(s) détectée(s)`);
-      } else {
-        toast.error('Aucune formation trouvée');
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      toast.error('Erreur lors de l\'analyse des fichiers');
-    } finally {
-      setIsLoading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+    processFiles(Array.from(files));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
   
@@ -171,14 +88,11 @@ export function DropZone({ onFormationsDetected, isLoading, setIsLoading }: Drop
     <div className="w-full">
       {/* Zone de drag & drop */}
       <div
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
+        {...getRootProps()}
         className={`
           relative border-2 border-dashed rounded-2xl p-12 text-center
           transition-all duration-300
-          ${isDragging 
+          ${isDragActive
             ? 'border-[#FF0000] bg-[#FF0000]/10 scale-[1.02]' 
             : 'border-[#3f3f3f] bg-[#1a1a1a] hover:border-[#717171] hover:bg-[#272727]'
           }
@@ -195,16 +109,16 @@ export function DropZone({ onFormationsDetected, isLoading, setIsLoading }: Drop
             <div className={`
               w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center
               transition-all duration-300
-              ${isDragging ? 'bg-[#FF0000] scale-110' : 'bg-[#272727]'}
+              ${isDragActive ? 'bg-[#FF0000] scale-110' : 'bg-[#272727]'}
             `}>
               <Upload className={`
                 w-10 h-10 transition-colors duration-300
-                ${isDragging ? 'text-white' : 'text-[#AAAAAA]'}
+                ${isDragActive ? 'text-white' : 'text-[#AAAAAA]'}
               `} />
             </div>
             
             <h3 className="text-xl font-semibold text-white mb-2">
-              {isDragging ? 'Déposez votre dossier ici' : 'Glissez-déposez un dossier'}
+              {isDragActive ? 'Déposez votre dossier ici' : 'Glissez-déposez un dossier'}
             </h3>
             
             <p className="text-[#AAAAAA] mb-6">
@@ -242,6 +156,9 @@ export function DropZone({ onFormationsDetected, isLoading, setIsLoading }: Drop
         onChange={handleFileSelect}
         className="hidden"
       />
+      
+      {/* Input de react-dropzone (invisible) */}
+      <input {...getInputProps()} />
     </div>
   );
 }
