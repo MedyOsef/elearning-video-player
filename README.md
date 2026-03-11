@@ -3,9 +3,9 @@
 Application web de lecture vidéo pour formations en local, gestion de progression via IndexedDB, et support des sous-titres SRT.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![React](https://img.shields.io/badge/React-18-61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6)
-![Tailwind](https://img.shields.io/badge/Tailwind-3.4-06B6D4)
+![React](https://img.shields.io/badge/React-19.2.0-61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.4.19-06B6D4)
 
 ## ✨ Fonctionnalités
 
