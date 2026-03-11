@@ -105,9 +105,9 @@ export function Sidebar({
         {/* Header */}
         <div className="p-4 border-b border-[#272727]">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-[#FF0000]" />
-              <h2 className="text-white font-semibold truncate">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <BookOpen className="w-5 h-5 text-[#FF0000] flex-shrink-0" />
+              <h2 className="text-white font-semibold line-clamp-2">
                 {formation.displayName}
               </h2>
             </div>
@@ -171,11 +171,11 @@ export function Sidebar({
                     ) : (
                       <ChevronRight className="w-4 h-4 text-[#AAAAAA]" />
                     )}
-                    <span className="flex-1 text-left text-sm font-medium text-white">
+                    <span className="flex-1 text-left text-sm font-medium text-white min-w-0">
                       {section.displayName}
                     </span>
                     <span className={`
-                      text-xs px-2 py-0.5 rounded-full
+                      text-xs px-2 py-0.5 rounded-full flex-shrink-0
                       ${isSectionCompleted 
                         ? 'bg-green-600/20 text-green-400' 
                         : 'bg-[#272727] text-[#AAAAAA]'
@@ -231,13 +231,13 @@ export function Sidebar({
                             <span className="text-xs text-[#717171] flex-shrink-0">
                               {index + 1}.
                             </span>
-                            <span className="text-sm truncate flex-1">
+                            <span className="text-sm line-clamp-2 flex-1 min-w-0">
                               {video.displayName}
                             </span>
                             
                             {/* Indicateur "En cours" */}
                             {isCurrent && (
-                              <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded">
+                              <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded flex-shrink-0">
                                 En cours
                               </span>
                             )}
