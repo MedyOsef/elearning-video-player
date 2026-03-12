@@ -4,11 +4,6 @@
  */
 import type { Formation, Section, Video } from '@/types';
 
-// Type pour les fichiers avec chemin relatif optionnel
-interface FileWithPath extends File {
-  webkitRelativePath?: string;
-}
-
 // Extension de l'interface FileSystemDirectoryHandle pour TypeScript
 declare global {
   interface FileSystemDirectoryHandle {
