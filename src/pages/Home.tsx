@@ -107,7 +107,7 @@ export function Home() {
                 variant="ghost"
                 size="icon"
                 className="text-[#AAAAAA] hover:text-white hover:bg-[#272727]"
-                onClick={() => toast.info('Version 1.0.0')}
+                onClick={() => toast.info('Version 1.0.0 \n Made by MedyOsef')}
               >
                 <Settings className="w-5 h-5" />
               </Button>
@@ -187,11 +187,14 @@ export function Home() {
             <p className="text-[#717171] text-sm">
               E-Learning Video Player • Client-side only • Données stockées localement
             </p>
+            {/* 
             <div className="flex items-center gap-4 text-[#717171] text-sm">
+              
               <span>Raccourcis : Espace = Play/Pause</span>
               <span>•</span>
               <span>Flèches = Avancer/Reculer</span>
             </div>
+            */}
           </div>
         </div>
       </footer>
