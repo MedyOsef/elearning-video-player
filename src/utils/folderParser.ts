@@ -4,6 +4,11 @@
  */
 import type { Formation, Section, Video } from '@/types';
 
+// Type pour les fichiers avec chemin relatif optionnel
+interface FileWithPath extends File {
+  webkitRelativePath?: string;
+}
+
 // Extension de l'interface FileSystemDirectoryHandle pour TypeScript
 declare global {
   interface FileSystemDirectoryHandle {
@@ -187,19 +192,35 @@ async function parseSection(
 }
 
 /**
- * Parse des fichiers depuis un input file (fallback)
+ * Parse des fichiers depuis un input file (fallback) ou depuis le drag & drop
  */
-export function parseFilesFromInput(files: File[] | FileList): Formation[] {
+export function parseFilesFromInput(files: any): Formation[] {
   const formationMap: Map<string, { sections: Map<string, Video[]>, rootVideos: Video[] }> = new Map();
   
   for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const pathParts = file.webkitRelativePath.split('/');
+    // Support à la fois File[] et FileWithPath[] (objets avec { file, webkitRelativePath })
+    let file: File;
+    let relativePath: string;
     
-    if (pathParts.length < 2) continue;
+    if ('file' in files[i] && files[i].file instanceof File) {
+      // C'est un objet { file: File, webkitRelativePath: string }
+      file = files[i].file;
+      relativePath = files[i].webkitRelativePath || file.name;
+    } else if (files[i] instanceof File) {
+      // C'est un File directement
+      file = files[i];
+      relativePath = file.webkitRelativePath || file.name;
+    } else {
+      continue;
+    }
     
-    const formationName = pathParts[0];
-    const isRoot = pathParts.length === 2;
+    const pathParts = relativePath.split('/');
+    
+    if (pathParts.length < 1) continue;
+    
+    // Si pas de "/" dans le chemin, c'est à la racine
+    const formationName = pathParts.length === 1 ? 'root' : pathParts[0];
+    const isRoot = pathParts.length === 1;
     
     if (!formationMap.has(formationName)) {
       formationMap.set(formationName, { sections: new Map(), rootVideos: [] });
