@@ -51,7 +51,7 @@ Application web de lecture vidéo pour formations en local, gestion de progressi
 
 ## 🛠️ Stack Technique
 
-- **React 18** + **Vite** + **TypeScript**
+- **React 19** + **Vite** + **TypeScript**
 - **Tailwind CSS** pour le styling
 - **shadcn/ui** pour les composants UI
 - **IndexedDB** (via `idb`) pour le stockage local
