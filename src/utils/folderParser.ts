@@ -189,7 +189,7 @@ async function parseSection(
 /**
  * Parse des fichiers depuis un input file (fallback)
  */
-export function parseFilesFromInput(files: FileList): Formation[] {
+export function parseFilesFromInput(files: File[] | FileList): Formation[] {
   const formationMap: Map<string, { sections: Map<string, Video[]>, rootVideos: Video[] }> = new Map();
   
   for (let i = 0; i < files.length; i++) {
