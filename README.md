@@ -163,7 +163,7 @@ Ma-Formation/
 
 ## 📝 License
 
-MIT License - Libre d'utilisation et de modification.
+(https://github.com/MedyOsef/elearning-video-player)
 
 ---
 
